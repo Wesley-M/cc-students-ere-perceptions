@@ -1,0 +1,97 @@
+---
+title: "exploracao.Rmd"
+author: "Wesley Santos"
+date: "8/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r} 
+library(tidyverse)
+library(here)
+library(ggbeeswarm)
+
+theme_set(theme_bw())
+```
+
+```{r}
+survey = read_csv(
+    here("data/modified_survey.csv")
+)
+```
+
+```{r, fig.width = 10, fig.height = 4} 
+library(asbio)
+
+ci.median(survey$prob)
+
+comp_summary <- survey %>%
+                    filter(tipo == "dificuldade", 
+                           disciplinas == "comp",
+                           comp_cursadas == 1) %>%
+                    group_by(aspecto) %>%
+                    summarise(media = mean(avaliacao),
+                              mediana = median(avaliacao),
+                              sd = sd(avaliacao), 
+                              n = n(),
+                              se = sd / sqrt(n),
+                              ic = se * qt((1-0.05) / 2 + .5, n - 1),
+                              disciplinas, .groups = "drop") %>%
+                    unique
+
+mat_summary <- survey %>%
+                    filter(tipo == "dificuldade", 
+                           disciplinas == "mat",
+                           mat_cursadas == 1) %>%
+                    group_by(aspecto) %>%
+                    summarise(media = mean(avaliacao), 
+                              mediana = median(avaliacao),
+                              sd = sd(avaliacao), 
+                              n = n(),
+                              se = sd / sqrt(n),
+                              ic = se * qt((1-0.05) / 2 + .5, n - 1),
+                              disciplinas, .groups = "drop") %>%
+                    unique
+
+prat_summary <- survey %>%
+                    filter(tipo == "dificuldade", 
+                           disciplinas == "prat",
+                           prat_cursadas == 1) %>%
+                    group_by(aspecto) %>%
+                    summarise(media = mean(avaliacao), 
+                              mediana = median(avaliacao),
+                              sd = sd(avaliacao), 
+                              n = n(),
+                              se = sd / sqrt(n),
+                              ic = se * qt((1-0.05) / 2 + .5, n - 1),
+                              disciplinas, .groups = "drop") %>%
+                    unique
+
+
+total <- rbind(comp_summary, mat_summary, prat_summary)
+
+total %>%
+        ggplot(aes(x = reorder(aspecto, media), y = media, group = aspecto)) +
+        geom_bar(aes(fill = aspecto), width = 0.5, color = "white", alpha = 0.8, stat="identity", position = position_dodge()) +
+        facet_wrap(~disciplinas) +
+        geom_errorbar(aes(x=aspecto, ymin=media-ic, ymax=media+ic), width=0.2, colour="black", alpha=0.8, size=0.4) +
+        geom_hline(aes(yintercept = 3), lty = "dashed", color = "orange") +
+        coord_flip()
+```
+
+```{r} 
+survey %>%
+    group_by(genero) %>%
+    ggplot(aes(x = indice_aprendizado, y = genero)) +
+    geom_violin(aes(color = genero)) +
+    geom_beeswarm(aes(color = genero), cex=3, size = 3, alpha = 0.5, groupOnX = FALSE) +
+    scale_x_continuous(breaks = 1:10) +
+    labs(
+        title = "Grau de aprendizagem percebido pelos estudantes",
+        subtitle = "Valores menores indicam pouco aprendizado percebido e vice-versa",
+        x = "Intensidade"
+    )
+```
