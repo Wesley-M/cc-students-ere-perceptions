@@ -1,97 +1,570 @@
 ---
-title: "exploracao.Rmd"
-author: "Wesley Santos"
-date: "8/11/2021"
-output: html_document
+title: "Percepções dos alunos de CC (UFCG) acerca do ensino remoto emergencial"
+output:
+  rmdformats::robobook:
+    self_contained: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+    code_folding: hide
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r} 
+```{r, warning = FALSE, message = FALSE} 
 library(tidyverse)
 library(here)
-library(ggbeeswarm)
+library(kableExtra)
+library(ggsci)
 
 theme_set(theme_bw())
 ```
 
-```{r}
+```{r warning = FALSE, message = FALSE}
 survey = read_csv(
     here("data/modified_survey.csv")
 )
+
+survey$disciplinas = as.factor(survey$disciplinas)
+survey$periodo = as.factor(survey$periodo)
 ```
 
-```{r, fig.width = 10, fig.height = 4} 
-library(asbio)
+```{css, echo = FALSE} 
+img {
+    width: 85%;
+}
+```
 
-ci.median(survey$prob)
+Nesse relatório, onde faremos a análise das percepções dos estudantes de CC (UFCG) acerca do ensino remoto de emergência, se
+encontram as visualizações e interpretações das respostas de cada questão. Como também análises de correlação e de estatísticas 
+da nossa amostra. Por fim, fazendo inferências acerca do aprendizado e das dificuldades entre os alunos. Os dados são 
+provenientes de um questionário aplicado entre as datas de 10/08/2021 até 16/08/2021, o qual contou com a participação 
+de 67 estudantes do curso.
 
-comp_summary <- survey %>%
-                    filter(tipo == "dificuldade", 
-                           disciplinas == "comp",
-                           comp_cursadas == 1) %>%
-                    group_by(aspecto) %>%
-                    summarise(media = mean(avaliacao),
-                              mediana = median(avaliacao),
-                              sd = sd(avaliacao), 
-                              n = n(),
-                              se = sd / sqrt(n),
-                              ic = se * qt((1-0.05) / 2 + .5, n - 1),
-                              disciplinas, .groups = "drop") %>%
-                    unique
+Primeiramente, iremos apresentar a categorização demográfica da nossa amostra, dando uma melhor ideia de quem respondeu
+nossa pesquisa e qual o seu background.
 
-mat_summary <- survey %>%
-                    filter(tipo == "dificuldade", 
-                           disciplinas == "mat",
-                           mat_cursadas == 1) %>%
-                    group_by(aspecto) %>%
-                    summarise(media = mean(avaliacao), 
-                              mediana = median(avaliacao),
-                              sd = sd(avaliacao), 
-                              n = n(),
-                              se = sd / sqrt(n),
-                              ic = se * qt((1-0.05) / 2 + .5, n - 1),
-                              disciplinas, .groups = "drop") %>%
-                    unique
+# Categorização demográfica
 
-prat_summary <- survey %>%
-                    filter(tipo == "dificuldade", 
-                           disciplinas == "prat",
-                           prat_cursadas == 1) %>%
-                    group_by(aspecto) %>%
-                    summarise(media = mean(avaliacao), 
-                              mediana = median(avaliacao),
-                              sd = sd(avaliacao), 
-                              n = n(),
-                              se = sd / sqrt(n),
-                              ic = se * qt((1-0.05) / 2 + .5, n - 1),
-                              disciplinas, .groups = "drop") %>%
-                    unique
+Na categorização, solicitamos aos alunos suas idades, gênero (masculino, feminino, outros, prefiro não dizer), 
+período em que entraram na faculdade e classe de disciplinas que cursaram ou estão cursando no ensino
+remoto eemrgencial.
 
+## Qual a sua idade ?
 
-total <- rbind(comp_summary, mat_summary, prat_summary)
+```{r, fig.align='center'} 
+tot <- survey %>%
+            select(data_hora, idade) %>%
+            distinct %>%
+            count %>%
+            pull(n)
 
-total %>%
-        ggplot(aes(x = reorder(aspecto, media), y = media, group = aspecto)) +
-        geom_bar(aes(fill = aspecto), width = 0.5, color = "white", alpha = 0.8, stat="identity", position = position_dodge()) +
-        facet_wrap(~disciplinas) +
-        geom_errorbar(aes(x=aspecto, ymin=media-ic, ymax=media+ic), width=0.2, colour="black", alpha=0.8, size=0.4) +
-        geom_hline(aes(yintercept = 3), lty = "dashed", color = "orange") +
-        coord_flip()
+survey %>%
+    select(data_hora, idade) %>%
+    distinct %>%
+    group_by(idade) %>%
+    summarise(freq_abs = n(), freq = paste(round(n() / tot * 100, 1), "%", sep = "")) %>%
+    ggplot(aes(x = idade, y = freq_abs)) +
+    geom_col(fill = "dodgerblue", width = 0.5, position = position_dodge(1)) +
+    geom_text(aes(label=freq), vjust=-0.5, color="gray18", position = position_dodge(1), size=4) +
+    scale_x_continuous(breaks = 18:34) +
+    scale_y_continuous(limits = c(0, 20)) +
+    labs(
+        x = "Idade",
+        y = "Frequência",
+        title = "Distribuição das idades dos participantes"
+    )
 ```
 
 ```{r} 
 survey %>%
+    select(data_hora, idade) %>%
+    distinct %>%
+    summarise("Média: " = round(mean(idade), 2), 
+              "Mediana: " = median(idade), 
+              "Desvio padrão: " = round(sd(idade), 2), 
+              "90th percentil: " = quantile(idade, 0.9)) %>%
+     kable(align = "cccc", caption = "Estatísticas da idade dos participantes.") %>%
+        kable_material(full_width = FALSE, position = "center", font_size = 16)
+```
+
+A idade, como podemos ver, é bastante concentrada entre 19-24 anos, com um formato parecido com a distribuição normal, somado
+a uma calda que se entende a direita (algumas poucas idades maiores que fogem da tendência geral). Já o desvio padrão 
+(2.77 anos) é consideravelmente baixo em comparação com a média. Sua mediana e média estão bem próximas de 21 e apenas 
+10% dos participantes têm mais de 24 anos.
+
+## Gênero
+
+```{r, fig.align='center'} 
+tot <- survey %>%
+            select(data_hora, genero) %>%
+            distinct %>%
+            count %>%
+            pull(n)
+
+survey %>%
+    select(data_hora, genero) %>%
+    distinct %>%
     group_by(genero) %>%
-    ggplot(aes(x = indice_aprendizado, y = genero)) +
-    geom_violin(aes(color = genero)) +
-    geom_beeswarm(aes(color = genero), cex=3, size = 3, alpha = 0.5, groupOnX = FALSE) +
+    summarise(freq = paste(round(n() / tot * 100, 1), "%", sep = "")) %>%
+    ggplot(aes(x = genero, y = freq)) +
+    geom_col(aes(fill = genero), width = 0.3) +
+    geom_text(aes(label=freq), hjust = -0.2, color="gray18", size=5) +
+    labs(
+        x = "",
+        y = "Frequência",
+        title = "Distribuição dos participantes por gênero",
+        fill = "Gênero"
+    ) +
+    scale_fill_npg() +
+    theme(axis.text.x = element_blank(),
+          axis.ticks.x = element_blank()) +
+    coord_flip()
+```
+
+Com o gênero, vemos que em torno de 80% se declararam masculinos e 20% femininos. O que 
+é interessante, pois é apenas um pouco maior que a média percentual de ingresso feminino no curso, 
+que é de 16.11% ([segundo dados da UFCG explorados pelo grupo Elas@Computação](https://elas.computacao.ufcg.edu.br/raio-x/)).
+Ou seja, nossa amostra é relativamente representativa quanto a esse aspecto.
+
+## Em que período você entrou na faculdade ?
+
+```{r, fig.align='center'} 
+survey %>%
+    select(data_hora, periodo) %>%
+    distinct %>%
+    group_by(periodo) %>%
+    summarise(freq_abs = n(), freq = paste(round(n() / tot * 100, 1), "%", sep = "")) %>%
+    ggplot(aes(x = reorder(periodo, freq_abs), y = freq_abs)) +
+    geom_col(aes(fill = as.numeric(reorder(periodo, freq_abs))), width = 0.5, position = position_dodge(1)) +
+    geom_text(aes(label=freq), hjust = -0.5, color="gray18", position = position_dodge(1), size=4) +
+    labs(
+        x = "Período",
+        y = "Frequência",
+        title = "Distribuição dos participantes por período",
+        fill = "Período em que entrou"
+    ) +
+    scale_y_continuous(limits = c(0, 20)) +
+    scale_fill_gradient2(low = "gray", high = "green4") +
+    coord_flip()
+```
+
+Como esperado, tivemos mais participantes do período 2018.X e 2017.X (56.8%), os quais representam as maiores
+parcelas da sala de metodologia científica. Interessantemente, também tivemos participação considerável dos alunos
+dos períodos mais recentes (2020.1 e 2020.2). De forma geral, houveram estudantes de todos os períodos desde, pelo 
+menos, 2015.2.
+
+
+## Que classes de disciplinas você cursou ou está cursando no ensino remoto emergencial ?
+
+```{r, fig.align='center'}
+survey %>%
+    summarise("Teóricas de computação/gerais" = mean(comp_cursadas), 
+              "Teóricas de matemática/estatística" = mean(mat_cursadas), 
+              "Práticas/Laboratórios" = mean(prat_cursadas)) %>%
+    pivot_longer(c("Teóricas de computação/gerais", 
+                   "Teóricas de matemática/estatística", 
+                   "Práticas/Laboratórios"), names_to = "disciplinas", values_to = "freq") %>%
+    ggplot(aes(x = reorder(disciplinas, freq), y = freq * 100)) +
+        geom_col(aes(fill = reorder(disciplinas, freq)), width = 0.4, position = position_dodge(1)) +
+        coord_flip() +
+        theme(legend.position = "none")  +
+        labs(
+            y = "Frequência (%)",
+            x = "",
+            title = "Participantes que cursaram diferentes classes de disciplina"
+        ) +
+        scale_fill_brewer(palette = "Blues")
+```
+
+A maioria dos participantes estudaram disciplinas teóricas de computação/gerais (97.01%), enquanto as
+práticas obtiveram a menor participação (70.14%). Já as de matemática/estatística formam o meio
+termo (80.59%), ou seja, os estudantes participaram bastante nas classes observadas.
+
+# Avaliação das dificuldades observadas na literatura
+
+```{r, fig.width = 8, fig.height=4}
+
+
+# Counting the ratings of a certain aspect
+rating_count_info <- function(df, aspect = "prob_tec", disc = "comp") {
+    df %>%
+        filter(aspecto == aspect, 
+               disciplinas == disc) %>%
+        group_by(avaliacao) %>%
+        summarise(count = n(),
+                  disciplinas, .groups = "drop") %>%
+    unique
+}
+
+aspect_distribution <- function(df, aspect = "prob_tec", dir = 1, pal = "Reds", ...) {
+    
+    # It gets the the ratings counts for the people that have or are taking the disciplines
+    total <- rbind(
+        rating_count_info(df %>% filter(mat_cursadas == 1), aspect, "mat"),
+        rating_count_info(df %>% filter(comp_cursadas == 1), aspect, "comp"),
+        rating_count_info(df %>% filter(prat_cursadas == 1), aspect, "prat")
+    )
+    
+    levels(total$disciplinas) <- c("Teóricas de computação/gerais", "Teóricas de matemática/estatística", "Práticas/Laboratórios")
+    
+    total %>%
+        ggplot(aes(x = avaliacao, y = count)) +
+            geom_col(aes(fill = as.character(avaliacao))) +
+            scale_fill_brewer(palette = pal, direction = dir) +
+            facet_wrap(~disciplinas) +
+            labs(
+                y = "Frequência",
+                x = "Grau",
+                fill = "Grau",
+                ...
+            )
+}
+
+rating_summarise <- function(df, aspect = "prob_tec", disc = "comp") {
+    df %>%
+        filter(aspecto == aspect,
+               disciplinas == disc) %>%
+        summarise(disciplinas,
+                  "Média" = round(mean(avaliacao), 2), 
+                  "Mediana" = median(avaliacao), 
+                  "Desvio padrão" = round(sd(avaliacao), 2), 
+                  "90th percentil" = quantile(avaliacao, 0.9), 
+                  .groups = "drop") %>%
+        rename("Disciplinas" = disciplinas) %>%
+        unique
+}
+
+aspect_stats <- function(df, aspect) {
+    
+    total <- rbind(
+        rating_summarise(df %>% filter(mat_cursadas == 1), aspect, "mat"),
+        rating_summarise(df %>% filter(comp_cursadas == 1), aspect, "comp"),
+        rating_summarise(df %>% filter(prat_cursadas == 1), aspect, "prat")
+    )
+    
+    levels(total$Disciplinas) <- c("Teóricas de computação/gerais", "Teóricas de matemática/estatística", "Práticas/Laboratórios")
+    
+    total %>%
+        kable(align = "lcccc", caption = "Estatísticas do aspecto") %>%
+            kable_material(full_width = FALSE, position = "center", font_size = 14)
+}
+```
+
+## Problemas(s) técnico(s) (hardware / software / rede)
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, title = "Distribuição do grau de prejuízo trazido por problemas técnicos",
+                    caption = "Valores maiores: Maior prejuízo; Valores menores: Menor prejuízo")
+```
+```{r} 
+aspect_stats(survey, "prob_tec")
+```
+
+## Problema de gerenciamento do tempo 
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, aspect = "prob_ger_temp", 
+                    title = "Distribuição do grau de prejuízo trazido por mal gerenciamento de tempo",
+                    caption = "Valores maiores: Maior prejuízo; Valores menores: Menor prejuízo")
+```
+
+```{r} 
+aspect_stats(survey, "prob_ger_temp")
+```
+
+## Comunicação prejudicada com os professores a partir das vídeo-chamadas e/ou emails
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, aspect = "comunic_prej", 
+                    title = "Distribuição do grau de prejuízo trazido pela comunicação prejudicada",
+                    caption = "Valores maiores: Maior prejuízo; Valores menores: Menor prejuízo")
+```
+
+```{r} 
+aspect_stats(survey, "comunic_prej")
+```
+
+## Falta de contato face-a-face e de atenção individualizada com o professor
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, aspect = "falta_contato", title = "Distribuição do grau de prejuízo trazido pela falta de contato",
+                    caption = "Valores maiores: Maior prejuízo; Valores menores: Menor prejuízo")
+```
+
+```{r} 
+aspect_stats(survey, "falta_contato")
+```
+
+## Ambiente de aprendizado não produtivo 
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, aspect = "amb_nao_prod", title = "Distribuição do grau de prejuízo trazido pelo ambiente não produtivo",
+                    caption = "Valores maiores: Maior prejuízo; Valores menores: Menor prejuízo")
+```
+
+```{r} 
+aspect_stats(survey, "amb_nao_prod")
+```
+
+# Avaliação de pontos positivos observados na literatura
+
+## Flexibilidade nos horários de estudo
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, aspect = "flex_horario", dir = 1, pal = "Blues",
+                    title = "Distribuição do grau de ajuda trazido pelo horário flexível",
+                    caption = "Valores maiores: Maior ajuda; Valores menores: Menor ajuda")
+```
+
+```{r} 
+aspect_stats(survey, "flex_horario")
+```
+
+## Estrutura mais claras das disciplinas
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, aspect = "estrut_clara", dir = 1, pal = "Blues",
+                    title = "Distribuição do grau de ajuda trazido pela estrutura clara",
+                    caption = "Valores maiores: Maior ajuda; Valores menores: Menor ajuda")
+```
+
+```{r} 
+aspect_stats(survey, "estrut_clara")
+```
+
+## Aprendizado no seu ritmo
+
+```{r, fig.align='center'} 
+aspect_distribution(survey, aspect = "ritmo_proprio", dir = 1, pal = "Blues",
+                    title = "Distribuição do grau de ajuda trazido pelo ritmo próprio",
+                    caption = "Valores maiores: Maior ajuda; Valores menores: Menor ajuda")
+```
+
+```{r} 
+aspect_stats(survey, "ritmo_proprio")
+```
+
+## Grau de aprendizado
+
+```{r, fig.align='center'} 
+survey %>%
+    select(data_hora, indice_aprendizado, genero) %>%
+    distinct %>%
+    group_by(genero) %>%
+    ggplot(aes(x = indice_aprendizado)) +
+    geom_density(aes(fill = genero, color = genero), alpha = 0.4) +
     scale_x_continuous(breaks = 1:10) +
+    guides(color = FALSE) +
     labs(
         title = "Grau de aprendizagem percebido pelos estudantes",
-        subtitle = "Valores menores indicam pouco aprendizado percebido e vice-versa",
-        x = "Intensidade"
+        caption = "Valores menores indicam pouco aprendizado percebido e vice-versa",
+        x = "Aprendizado percebido",
+        y = "Densidade",
+        fill = "Gênero"
+    ) +
+    scale_fill_npg()
+```
+
+## Questões abertas
+
+Os participantes também responderam duas questões abertas que diziam respeito a que dificuldades e
+pontos positivos eles avaliam que os impactaram negativamente ou positivamente, respectivamente.
+
+### Quais dificuldades (não citadas anteriormente) te impactaram negativamente ?
+
+Nessa categoria tivemos 11 respostas (16.4% dos participantes), onde 7 dessas relataram 
+explicitamente uma maior carga/cobrança dos professores como sendo uma dificuldade. Citando 
+diretamente a reposta de um participante, a qual interpretamos como sendo representativa dessa 
+reclamação:
+
+"A carga de atividades parece ser maior, principalmente em períodos mais curtos. São muitas entregas e prazos, 
+a sensação é de que o período é uma 'semana de provas' que dura 4 meses."
+
+Também foram relatados problemas de comunicação (unidades acadêmicas diferentes usando outros emails),
+dificuldade ao focar no conteúdo, falta de convívio com os outros alunos e metodologia de alguns
+professores do departamento de matemática deixando a desejar.
+
+
+### Quais pontos (não citados anteriormente) te impactaram positivamente ?
+
+Tivemos 10 respostas (14.9% dos participantes), e houve menos interseção entre os pontos positivos que
+mais os impactaram. Entretanto, os assuntos mais frequentes foram a utilização de novas ferramentas (discord,
+Google Meet e chat/votação anônimas), menos gastos com locomoção (financeiro e de tempo). Também foi
+reforçado o benefício da flexibilidade no tempo.
+
+Também foram citados o entendimento por partes dos professores e o conforto da própria casa como algo positivo,
+apesar de terem sido citados por apenas uma pessoa cada.
+
+"Acho que o fato de alguns professores compreenderem os atrasos é um ponto positivo. 
+Tem sido um período de ansiedade e frustração, então quando perco um prazo e o/a 
+professor(a) não entende que num ambiente doméstico existem muitas variáveis e nem 
+todo mundo tem um escritório isolado de ruído, é muito triste. Por sorte são poucos 
+os professores que escolhem ignorar isso."
+
+## Correlações
+
+Nós também investigamos se houve correlação entre variáveis como idade e período 
+em que entrou com aprendizado percebido (por gênero). E vimos que as correlações são
+negligenciáveis, não passando de fracas.
+
+```{r} 
+survey %>%
+    select(data_hora, idade, periodo, indice_aprendizado, genero) %>%
+    distinct %>%
+    group_by(genero) %>%
+    summarise("Período" = cor(as.numeric(periodo), indice_aprendizado, method = "spearman"),
+              "Idade" = cor(idade, indice_aprendizado, method = "spearman")) %>%
+    kable() %>%
+        kable_material(full_width = FALSE, position = "center", font_size = 14) %>%
+        add_header_above(header = c("Correlações de Spearman da idade e período com o aprendizado - por gênero" = 3))
+```
+
+E também as correlações entre as dificuldade relatadas e o índice de aprendizado
+percebido.
+
+```{r} 
+corr <- function(df, aspect = "dificuldade", classe_disc = "comp") { 
+    tot <- df %>% 
+            filter(tipo == aspect, 
+                   disciplinas == classe_disc) %>% 
+            select(data_hora, avaliacao, indice_aprendizado, genero) %>% 
+            group_by(genero) %>%
+            summarise(cor_pearson = cor(avaliacao, indice_aprendizado), 
+                      cor_spearman = cor(avaliacao, indice_aprendizado, method = "spearman"),
+                      cor_kendall = cor(avaliacao, indice_aprendizado, method = "kendall"))
+    cbind(data.frame(disc = rep(classe_disc, 2), tipo = rep(aspect, 2)), tot)
+}
+
+# Dificuldades
+correlacoes_discs <- rbind(
+    corr(survey %>% filter(comp_cursadas == 1)),
+    corr(survey %>% filter(mat_cursadas == 1), classe_disc = "mat"),
+    corr(survey %>% filter(prat_cursadas == 1), classe_disc = "prat")
+)
+
+correlacoes_discs$disc <- as.factor(correlacoes_discs$disc)
+    
+levels(correlacoes_discs$disc) <- c("Teóricas de computação/gerais", "Teóricas de matemática/estatística", "Práticas/Laboratórios")
+
+correlacoes_discs %>%
+    rename("Gênero" = genero, "Correlação de Pearson" = cor_pearson, "Correlação de Spearman" = cor_spearman, 
+           "Correlação de Kendall" = cor_kendall, "Classe das disciplinas" = disc) %>%
+    select(-tipo) %>%
+    kable() %>%
+        kable_material(full_width = FALSE, position = "center", font_size = 14) %>%
+        add_header_above(header = c("Correlações das dificuldades com o aprendizado - por classe de disciplinas e gênero" = 5))
+```
+
+Como vemos, ...
+
+
+
+## Resultados
+
+```{r} 
+# Retorna dados sumarizados dos respondentes para uma classe de disciplinas
+summarise_group_info <- function(df, kind = "dificuldade", classe_disciplinas = "comp") {
+    df %>%
+        filter(tipo == kind, 
+               disciplinas == classe_disciplinas) %>%
+        group_by(aspecto) %>%
+        summarise(media = mean(avaliacao), 
+                  mediana = median(avaliacao), 
+                  sd = sd(avaliacao), 
+                  n = n(), 
+                  se = sd / sqrt(n), 
+                  ic = se * qt((1-0.05) / 2 + .5, n - 1), 
+                  disciplinas, .groups = "drop") %>%
+        unique
+} 
+
+# Summaries for the difficulties
+comp_summary_d <- summarise_group_info(survey %>% filter(comp_cursadas == 1))
+mat_summary_d <- summarise_group_info(survey %>% filter(mat_cursadas == 1), classe_disciplinas = "mat")
+prat_summary_d <- summarise_group_info(survey %>% filter(prat_cursadas == 1), classe_disciplinas = "prat")
+
+total_d <- rbind(comp_summary_d, mat_summary_d, prat_summary_d)
+
+# Summaries for the positives
+comp_summary_p <- summarise_group_info(survey %>% filter(comp_cursadas == 1), kind = "positivo")
+mat_summary_p <- summarise_group_info(survey %>% filter(mat_cursadas == 1), classe_disciplinas = "mat", kind = "positivo")
+prat_summary_p <- summarise_group_info(survey %>% filter(prat_cursadas == 1), classe_disciplinas = "prat", kind = "positivo")
+
+total_p <- rbind(comp_summary_p, mat_summary_p, prat_summary_p)
+
+levels(total_d$disciplinas) <- c("Teóricas de computação/gerais", "Teóricas de matemática/estatística", "Práticas/Laboratórios")
+levels(total_p$disciplinas) <- c("Teóricas de computação/gerais", "Teóricas de matemática/estatística", "Práticas/Laboratórios")
+```
+
+```{r, fig.width = 10, fig.height = 6} 
+total_d %>%
+        ggplot(aes(x = reorder(aspecto, media), y = media, group = aspecto)) +
+        geom_bar(aes(fill = aspecto), width = 0.4, color = "white", alpha = 0.7, stat="identity", position = position_dodge()) +
+        facet_wrap(~disciplinas) +
+        geom_errorbar(aes(x=aspecto, ymin=media-ic, ymax=media+ic), width=0.1, colour="black", alpha=0.7, size=0.5) +
+        geom_hline(aes(yintercept = 3), lty = "dashed", color = "black", alpha = 0.4, size = 0.6) +
+        scale_y_discrete(limits = factor(c(1, 2, 3, 4, 5))) +
+        scale_x_discrete(labels = rev(c("Ambiente não produtivo", "Falta de contato", 
+                                        "Gerenciamento de tempo", "Comunicação prejudicada", 
+                                        "Problemas técnicos"))) +
+        theme(legend.position = "none") +  
+        coord_flip() +
+        labs(
+            y = "Média de avaliação",
+            caption = "Valores menores = prejudicaram pouco, Valores maiores = prejudicaram muito",
+            x = "",
+            title = "Avaliações das dificuldades por classe de disciplinas",
+            subtitle = "Média acompanhada de intervalo de confiança (95%)"
+        ) +
+        scale_fill_aaas()
+```
+
+```{r, fig.width = 10, fig.height = 6} 
+total_p %>%
+        ggplot(aes(x = reorder(aspecto, media), y = media, group = aspecto)) +
+        geom_bar(aes(fill = aspecto), width = 0.3, color = "white", alpha = 0.7, stat="identity", position = position_dodge()) +
+        facet_wrap(~disciplinas) +
+        geom_errorbar(aes(x=aspecto, ymin=media-ic, ymax=media+ic), width=0.1, colour="black", alpha=0.7, size=0.5) +
+        geom_hline(aes(yintercept = 3), lty = "dashed", color = "black", alpha = 0.4, size = 0.6) +
+        scale_y_discrete(limits = factor(c(1, 2, 3, 4, 5))) +
+        scale_x_discrete(labels = rev(c("Horário flexível", 
+                                        "Aprendizado no seu ritmo", 
+                                        "Estrutura/cronograma claro"))) +
+        theme(legend.position = "none") +  
+        coord_flip() +
+        labs(
+            y = "Média de avaliação",
+            caption = "Valores menores = ajudaram pouco, Valores maiores = ajudaram muito",
+            x = "",
+            title = "Avaliações dos pontos positivos por classe de disciplinas",
+            subtitle = "Média acompanhada de intervalo de confiança (95%)"
+        ) +
+        scale_fill_npg()
+```
+
+```{r, fig.align='center'} 
+survey %>%
+    select(data_hora, indice_aprendizado, genero) %>%
+    distinct %>%
+    group_by(genero) %>%
+    summarise(
+        media = mean(indice_aprendizado), 
+        sd = sd(indice_aprendizado), 
+        n = n(), 
+        se = sd / sqrt(n), 
+        ic = se * qt((1-0.05) / 2 + .5, n - 1)
+    ) %>%
+    ggplot(aes(x = genero, y = media)) +
+    geom_point(aes(color = genero), size = 2.5) +
+    geom_errorbar(aes(x=genero, color = genero, ymin=media-ic, ymax=media+ic), width=0.1, size=0.9) +
+    coord_flip() +
+    geom_hline(aes(yintercept = 5.5), lty = "dashed", color = "darkgray") +
+    scale_y_continuous(limits=c(1, 10), breaks = 1:10) +
+    labs(
+        x = "Gênero",
+        y = "Aprendizado percebido",
+        color = "Gênero",
+        title = "Aprendizado percebido",
+        subtitle = "Média acompanhada de intervalo de confiança (95%)"
     )
 ```
+

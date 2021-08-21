@@ -108,6 +108,8 @@ survey <- survey %>%
         select(-c("cursadas", "positivos_n_citados", "dificuldades_n_citadas")) %>%
     slice(n = 25:(initial_length*24))
 
+View(survey)
+
 # Saving CSV
 write.csv(survey, here("data/modified_survey.csv"), row.names = FALSE)
 
