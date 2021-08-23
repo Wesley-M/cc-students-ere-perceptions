@@ -28,25 +28,63 @@ survey$periodo = as.factor(survey$periodo)
 ```
 
 ```{css, echo = FALSE} 
+* {
+    text-align: justify;
+}
+
+h1, h2, h3, h4, h5 {
+    text-align: left;    
+}
+
 img {
     width: 85%;
 }
+
+.quote {
+    font-style: italic;
+    border-left: 3px solid darkgray;
+    padding: 1em;
+    text-indent: 0;
+    transition: all 200ms;
+    background-color: #00000005;
+    color: #000000aa;
+}
+
+.quote:hover {
+    color: #000000ee;
+    border-left: 6px solid black;
+    background-color: #00000010;
+}
+
 ```
 
-Nesse relatório, onde faremos a análise das percepções dos estudantes de CC (UFCG) acerca do ensino remoto de emergência, se
-encontram as visualizações e interpretações das respostas de cada questão. Como também análises de correlação e de estatísticas 
-da nossa amostra. Por fim, fazendo inferências acerca do aprendizado e das dificuldades entre os alunos. Os dados são 
-provenientes de um questionário aplicado entre as datas de 10/08/2021 até 16/08/2021, o qual contou com a participação 
-de 67 estudantes do curso.
+Nesse relatório, onde faremos a análise das percepções dos estudantes de CC (UFCG) acerca do ensino remoto de emergência, se encontram as visualizações e interpretações das respostas de cada questão. Como também análises de correlação e de estatísticas da nossa amostra. Por fim, fazendo inferências acerca do aprendizado e das dificuldades entre os alunos. Os dados são provenientes de um questionário aplicado entre as datas de 10/08/2021 até 16/08/2021, o qual contou com a participação de 67 estudantes do curso.
 
-Primeiramente, iremos apresentar a categorização demográfica da nossa amostra, dando uma melhor ideia de quem respondeu
-nossa pesquisa e qual o seu background.
+Link para as questões: [Google Drive](https://drive.google.com/file/d/1VVcSt1S7owWi4zg0ZvIqrPRelR0avuc-/view?usp=sharing) <br/>
+Link para os dados (CSV): [Github](https://github.com/Wesley-M/cc-students-ere-perceptions/blob/main/data/survey.csv)
+
+Primeiramente, iremos apresentar as nossas hipóteses e logo após a categorização demográfica da nossa amostra, dando uma melhor ideia de quem respondeu nossa pesquisa.
+
+# Hipóteses
+
+Esperamos que:
+
+1. Os problemas técnicos dos alunos sejam a menor dificuldade, em todas as classes de disciplinas avaliadas, pelo próprio contexto do curso.
+
+2. O gerenciamento do tempo e ambiente de aprendizado cheio de distrações sejam percebidos mais negativamente do que os outros fatores
+
+3. Haja diferença significativa das avaliações de dificuldades/pontos positivos em classes de disciplinas diferentes (teóricas de computação/gerais, teóricas de matemática/estatística, práticas/laboratório)
+
+4. A flexibilidade dos horários representa a principal ajuda para os alunos durante o período de ensino remoto emergencial
+
+5. Haja correlação entre as dificuldades e o índice de aprendizado
+
 
 # Categorização demográfica
 
 Na categorização, solicitamos aos alunos suas idades, gênero (masculino, feminino, outros, prefiro não dizer), 
 período em que entraram na faculdade e classe de disciplinas que cursaram ou estão cursando no ensino
-remoto eemrgencial.
+remoto emergencial.
 
 ## Qual a sua idade ?
 
@@ -120,9 +158,9 @@ survey %>%
     coord_flip()
 ```
 
-Com o gênero, vemos que em torno de 80% se declararam masculinos e 20% femininos. O que 
-é interessante, pois é apenas um pouco maior que a média percentual de ingresso feminino no curso, 
-que é de 16.11% ([segundo dados da UFCG explorados pelo grupo Elas@Computação](https://elas.computacao.ufcg.edu.br/raio-x/)).
+Vemos que em torno de 80% se declararam do gênero masculino e 20% do feminino. O que 
+é interessante, pois a nossa frequênia é apenas um pouco maior que a média percentual 
+de ingresso feminino no curso, que é de 16.11%, ([segundo dados da UFCG explorados pelo grupo Elas@Computação](https://elas.computacao.ufcg.edu.br/raio-x/)).
 Ou seja, nossa amostra é relativamente representativa quanto a esse aspecto.
 
 ## Em que período você entrou na faculdade ?
@@ -147,11 +185,10 @@ survey %>%
     coord_flip()
 ```
 
-Como esperado, tivemos mais participantes do período 2018.X e 2017.X (56.8%), os quais representam as maiores
-parcelas da sala de metodologia científica. Interessantemente, também tivemos participação considerável dos alunos
-dos períodos mais recentes (2020.1 e 2020.2). De forma geral, houveram estudantes de todos os períodos desde, pelo 
+Como esperado, tivemos mais participantes do período 2017.X e 2018.X (56.8%), os quais representam as maiores
+parcelas da sala de metodologia científica. Também tivemos participação considerável dos alunos
+dos períodos mais recentes (2020.1 e 2020.2), 19.4%. De forma geral, houveram estudantes de todos os períodos desde, pelo 
 menos, 2015.2.
-
 
 ## Que classes de disciplinas você cursou ou está cursando no ensino remoto emergencial ?
 
@@ -165,39 +202,51 @@ survey %>%
                    "Práticas/Laboratórios"), names_to = "disciplinas", values_to = "freq") %>%
     ggplot(aes(x = reorder(disciplinas, freq), y = freq * 100)) +
         geom_col(aes(fill = reorder(disciplinas, freq)), width = 0.4, position = position_dodge(1)) +
-        coord_flip() +
+        geom_text(aes(label=paste(round(freq * 100, 2), "%", sep = "")), 
+                  hjust = -0.5, color="gray18", position = position_dodge(1), size=4) +
         theme(legend.position = "none")  +
+        scale_fill_brewer(palette = "Blues") +
+        scale_y_continuous(limits = c(0, 110)) +
+        coord_flip() +
         labs(
             y = "Frequência (%)",
             x = "",
             title = "Participantes que cursaram diferentes classes de disciplina"
-        ) +
-        scale_fill_brewer(palette = "Blues")
+        )
 ```
 
 A maioria dos participantes estudaram disciplinas teóricas de computação/gerais (97.01%), enquanto as
-práticas obtiveram a menor participação (70.14%). Já as de matemática/estatística formam o meio
-termo (80.59%), ou seja, os estudantes participaram bastante nas classes observadas.
+práticas obtiveram a menor participação (70.15%). Já as de matemática/estatística formam o meio
+termo (80.6%), ou seja, os estudantes participaram bastante nas classes observadas.
 
 # Avaliação das dificuldades observadas na literatura
 
-```{r, fig.width = 8, fig.height=4}
+Nessa seção iremos analisar as distribuições e estatísticas dos graus de prejuízo relatados para cada dificuldade. Só foram considerados na distribuição para uma certa classe de disciplinas os respondentes que cursaram ou estão cursando alguma matéria daquela classe. 
 
+```{r, fig.width = 8, fig.height=4}
 
 # Counting the ratings of a certain aspect
 rating_count_info <- function(df, aspect = "prob_tec", disc = "comp") {
+    tot <- df %>%
+            filter(aspecto == aspect, 
+                   disciplinas == disc) %>%
+            count %>%
+            pull("n")
+            
     df %>%
         filter(aspecto == aspect, 
                disciplinas == disc) %>%
         group_by(avaliacao) %>%
         summarise(count = n(),
+                  freq = paste(round(n() / tot * 100, 1), "%", sep = ""),
                   disciplinas, .groups = "drop") %>%
     unique
 }
 
 aspect_distribution <- function(df, aspect = "prob_tec", dir = 1, pal = "Reds", ...) {
     
-    # It gets the the ratings counts for the people that have or are taking the disciplines
+    # It gets the the ratings counts for the people that have already or are taking 
+    # the disciplines
     total <- rbind(
         rating_count_info(df %>% filter(mat_cursadas == 1), aspect, "mat"),
         rating_count_info(df %>% filter(comp_cursadas == 1), aspect, "comp"),
@@ -210,6 +259,7 @@ aspect_distribution <- function(df, aspect = "prob_tec", dir = 1, pal = "Reds", 
         ggplot(aes(x = avaliacao, y = count)) +
             geom_col(aes(fill = as.character(avaliacao))) +
             scale_fill_brewer(palette = pal, direction = dir) +
+            geom_text(aes(label=freq), vjust=-0.5, color="gray18", position = position_dodge(1), size=3) +
             facet_wrap(~disciplinas) +
             labs(
                 y = "Frequência",
@@ -255,9 +305,12 @@ aspect_stats <- function(df, aspect) {
 aspect_distribution(survey, title = "Distribuição do grau de prejuízo trazido por problemas técnicos",
                     caption = "Valores maiores: Maior prejuízo; Valores menores: Menor prejuízo")
 ```
+
 ```{r} 
 aspect_stats(survey, "prob_tec")
 ```
+
+Observamos que a maioria dos alunos não consideraram que os problemas técnicos trouxeram grandes prejuízos durante o ensino remoto. O grau 1 (menor prejuízo) é o maior em todas as classes de disciplinas abordadas (evidenciado pela mediana). Já a média ficou em torno de 2 na amostra, ou seja, em média foi notado pouco prejuízo.
 
 ## Problema de gerenciamento do tempo 
 
@@ -271,6 +324,8 @@ aspect_distribution(survey, aspect = "prob_ger_temp",
 aspect_stats(survey, "prob_ger_temp")
 ```
 
+Diferentemente do gráfico anterior (prejuízo por problemas técnicos), aqui temos uma distribuição com frequências de respostas bem mais próximas. Como era de se esperar, uma boa parte da amostra considerou o gerenciamento de tempo como um fator determinante para o processo de aprendizagem durante o ensino remoto, sendo que o mal gerenciamento deste prejudica bastante esse processo. As médias e medianas estiveram em torno de 3 em todas as classes, o que nos indica que cerca de metade dos alunos avalia como um prejuízo considerável a outra parte não tem tanto problema com esse gerenciamento.
+
 ## Comunicação prejudicada com os professores a partir das vídeo-chamadas e/ou emails
 
 ```{r, fig.align='center'} 
@@ -283,6 +338,8 @@ aspect_distribution(survey, aspect = "comunic_prej",
 aspect_stats(survey, "comunic_prej")
 ```
 
+Quanto à comunicação prejudicada, ela é avaliada como um prejuízo não tão considerável, mas maior que o dos problemas técnicos. Sua média e mediana ficam bem próximas de 2, ou seja, a maior parte dos estudantes entrevistados perceberam baixo prejuízo.
+
 ## Falta de contato face-a-face e de atenção individualizada com o professor
 
 ```{r, fig.align='center'} 
@@ -293,6 +350,8 @@ aspect_distribution(survey, aspect = "falta_contato", title = "Distribuição do
 ```{r} 
 aspect_stats(survey, "falta_contato")
 ```
+
+Em relação a falta de contato face-a-face, vemos um cenário parecido com o de mal gerenciamento do tempo. Enquanto cerca da metade dos participantes encontram prejuízo considerável, a outra parte encontra pouco. Esse gráfico também é um dos mais uniformes apresentados até agora, com exceção das “Teóricas de computação/gerais”, em que a maioria avalia um prejuízo mediano.
 
 ## Ambiente de aprendizado não produtivo 
 
@@ -305,7 +364,11 @@ aspect_distribution(survey, aspect = "amb_nao_prod", title = "Distribuição do 
 aspect_stats(survey, "amb_nao_prod")
 ```
 
+Por fim, vemos que o prejuízo percebido pelo ambiente não produtivo representa o maior encontrado na amostra, com mediana 4 e médias próximas de 3.5. O que nos indica um prejuízo alto. Isso é válido em todas as classes de disciplinas avaliadas.
+
 # Avaliação de pontos positivos observados na literatura
+
+Nessa seção iremos analisar as distribuições e estatísticas dos graus de ajuda relatados para cada ponto positivo. Só foram considerados na distribuição para uma certa classe de disciplinas os respondentes que cursaram ou estão cursando alguma matéria daquela classe. 
 
 ## Flexibilidade nos horários de estudo
 
@@ -319,7 +382,9 @@ aspect_distribution(survey, aspect = "flex_horario", dir = 1, pal = "Blues",
 aspect_stats(survey, "flex_horario")
 ```
 
-## Estrutura mais claras das disciplinas
+No gráfico acima, temos um resultado que condiz com o que esperávamos. A flexibilidade do horário, característica do ensino remoto, foi um ponto bastante positivo para os alunos. Vemos que a mediana foi 5, ou seja, mais de 50% dos participantes avaliaram da melhor forma possível esse ponto. Enquanto as médias estiveram acima de 4.2, um valor bastante considerável.
+
+## Estruturas mais claras das disciplinas
 
 ```{r, fig.align='center'} 
 aspect_distribution(survey, aspect = "estrut_clara", dir = 1, pal = "Blues",
@@ -330,6 +395,8 @@ aspect_distribution(survey, aspect = "estrut_clara", dir = 1, pal = "Blues",
 ```{r} 
 aspect_stats(survey, "estrut_clara")
 ```
+
+Quanto à estrutura mais clara das disciplinas, vemos que também foi bem avaliada, não tão notoriamente como a flexibilidade de horários. Mas ainda assim com mediana 4 e média em torno de 3.7, ou seja,  a maioria percebe que realmente esse ponto os ajudou. 
 
 ## Aprendizado no seu ritmo
 
@@ -343,7 +410,11 @@ aspect_distribution(survey, aspect = "ritmo_proprio", dir = 1, pal = "Blues",
 aspect_stats(survey, "ritmo_proprio")
 ```
 
-## Grau de aprendizado
+De forma bem parecida com a estrutura mais clara das disciplinas, vemos que também foi bem avaliada. Com mediana 4 e média em torno de 3.7, ou seja, a maioria também percebe que realmente esse ponto os ajudou. 
+
+# Grau de aprendizado
+
+Nesta seção iremos avaliar o grau de aprendizado relatado pelos estudantes. Quanto maior o valor, mais o estudante considera que seu aprendizado melhorou (aprendeu bem mais) e valores menores o contrário (aprendeu bem menos).
 
 ```{r, fig.align='center'} 
 survey %>%
@@ -363,48 +434,35 @@ survey %>%
     ) +
     scale_fill_npg()
 ```
+Vemos com a ajuda desse gráfico de densidades (de interpretação semelhante aos histogramas) que há uma certa bimodalidade no grau de aprendizagem masculino em torno de 4 e 7. Ou seja, existem dois grupos mais frequentes que avaliam negativamente e positivamente o aprendizado, respectivamente. Enquanto no caso feminino, vemos que claramente as respondentes em sua maioria veem um impacto negativo em sua aprendizagem. Algo interessante é que as mulheres estão mais presentes nos extremos do que os homens, o que demonstra uma variação alta.
 
-## Questões abertas
+# Questões abertas
 
-Os participantes também responderam duas questões abertas que diziam respeito a que dificuldades e
-pontos positivos eles avaliam que os impactaram negativamente ou positivamente, respectivamente.
+Os participantes também responderam duas questões abertas que diziam respeito a que dificuldades e pontos positivos eles avaliam que os impactaram negativamente ou positivamente (não citadas anteriormente), respectivamente.
 
 ### Quais dificuldades (não citadas anteriormente) te impactaram negativamente ?
 
-Nessa categoria tivemos 11 respostas (16.4% dos participantes), onde 7 dessas relataram 
-explicitamente uma maior carga/cobrança dos professores como sendo uma dificuldade. Citando 
-diretamente a reposta de um participante, a qual interpretamos como sendo representativa dessa 
-reclamação:
+Nessa categoria tivemos 11 respostas (16.4% dos participantes), onde 7 dessas relataram explicitamente uma maior carga/cobrança dos professores como sendo uma dificuldade. Citando diretamente a resposta de um participante, a qual interpretamos como sendo representativa dessa reclamação:
 
-"A carga de atividades parece ser maior, principalmente em períodos mais curtos. São muitas entregas e prazos, 
-a sensação é de que o período é uma 'semana de provas' que dura 4 meses."
+<p class="quote">“A carga de atividades parece ser maior, principalmente em períodos mais curtos. São muitas entregas e prazos, a sensação é de que o período é uma ‘semana de provas’ que dura 4 meses.”</p>
 
-Também foram relatados problemas de comunicação (unidades acadêmicas diferentes usando outros emails),
-dificuldade ao focar no conteúdo, falta de convívio com os outros alunos e metodologia de alguns
-professores do departamento de matemática deixando a desejar.
-
+Também foram relatados problemas de comunicação (unidades acadêmicas diferentes usando outros e-mails), dificuldade ao focar no conteúdo, falta de convívio com os outros alunos e metodologia de alguns professores do departamento de matemática deixando a desejar.
 
 ### Quais pontos (não citados anteriormente) te impactaram positivamente ?
 
-Tivemos 10 respostas (14.9% dos participantes), e houve menos interseção entre os pontos positivos que
-mais os impactaram. Entretanto, os assuntos mais frequentes foram a utilização de novas ferramentas (discord,
-Google Meet e chat/votação anônimas), menos gastos com locomoção (financeiro e de tempo). Também foi
-reforçado o benefício da flexibilidade no tempo.
+Tivemos 10 respostas (14.9% dos participantes), e houve menos interseção entre os pontos positivos que mais os impactaram. Entretanto, os assuntos mais frequentes foram a utilização de novas ferramentas (discord, Google Meet e chat/votação anônimas), menos gastos com locomoção (financeiro e de tempo). Também foi reforçado o benefício da flexibilidade do tempo.
 
-Também foram citados o entendimento por partes dos professores e o conforto da própria casa como algo positivo,
-apesar de terem sido citados por apenas uma pessoa cada.
+Menos frequente, mas ainda assim interessante, também foi citado o entendimento por parte dos professores (compreensão das dificuldades envolvidas no dia-a-dia dos alunos), flexibilizando a entrega de atividades. O conforto da própria casa também foi citado como algo positivo.
 
-"Acho que o fato de alguns professores compreenderem os atrasos é um ponto positivo. 
-Tem sido um período de ansiedade e frustração, então quando perco um prazo e o/a 
-professor(a) não entende que num ambiente doméstico existem muitas variáveis e nem 
-todo mundo tem um escritório isolado de ruído, é muito triste. Por sorte são poucos 
-os professores que escolhem ignorar isso."
+Decidimos destacar a resposta que fala sobre o entendimento dos professores:
 
-## Correlações
+<p class="quote">“Acho que o fato de alguns professores compreenderem os atrasos é um ponto positivo. Tem sido um período de ansiedade e frustração, então quando perco um prazo e o/a professor(a) não entende que num ambiente doméstico existem muitas variáveis e nem todo mundo tem um escritório isolado de ruído, é muito triste. Por sorte são poucos os professores que escolhem ignorar isso.”</p>
 
-Nós também investigamos se houve correlação entre variáveis como idade e período 
-em que entrou com aprendizado percebido (por gênero). E vimos que as correlações são
-negligenciáveis, não passando de fracas.
+O que é algo que também observamos na literatura como sendo de importância nesse período de incertezas.
+
+# Correlações
+
+Nós também investigamos se houve correlação entre variáveis como idade e período em que o estudante entrou na faculdade com aprendizado percebido (por gênero). E vimos que as correlações são negligenciáveis, não passando de fracas.
 
 ```{r} 
 survey %>%
@@ -418,8 +476,7 @@ survey %>%
         add_header_above(header = c("Correlações de Spearman da idade e período com o aprendizado - por gênero" = 3))
 ```
 
-E também as correlações entre as dificuldade relatadas e o índice de aprendizado
-percebido.
+Também analisamos as correlações entre as dificuldades relatadas e o índice de aprendizado percebido, por classe de disciplinas e gênero.
 
 ```{r} 
 corr <- function(df, aspect = "dificuldade", classe_disc = "comp") { 
@@ -454,11 +511,11 @@ correlacoes_discs %>%
         add_header_above(header = c("Correlações das dificuldades com o aprendizado - por classe de disciplinas e gênero" = 5))
 ```
 
-Como vemos, ...
+As mulheres, interessantemente, tiveram as correlações mais fortes  (principalmente nas Teóricas de computação/gerais) e negativas - a maioria tendo intensidade média. Ou seja, graus de prejuízo menores estiveram associados de forma média com índices de aprendizado mais altos, e vice-versa. Essa tendência também ocorreu nos homens, mas mais fraca e próxima em todas as classes de disciplinas - a maioria tendo intensidade média-baixa. 
 
+# Resultados
 
-
-## Resultados
+Quanto aos nossos resultados, abaixo apresentamos os gráficos das médias dos graus de prejuízo trazido pelas dificuldades investigadas na literatura. A visualização é realizada com gráficos de barras associados aos intervalos de confiança de 95%, com vista a estimar a média real na população de estudantes de CC da UFCG.
 
 ```{r} 
 # Retorna dados sumarizados dos respondentes para uma classe de disciplinas
@@ -472,7 +529,7 @@ summarise_group_info <- function(df, kind = "dificuldade", classe_disciplinas = 
                   sd = sd(avaliacao), 
                   n = n(), 
                   se = sd / sqrt(n), 
-                  ic = se * qt((1-0.05) / 2 + .5, n - 1), 
+                  ic = se * qnorm((0.95 + 1)/2), 
                   disciplinas, .groups = "drop") %>%
         unique
 } 
@@ -518,6 +575,10 @@ total_d %>%
         scale_fill_aaas()
 ```
 
+O ambiente não produtivo de estudo realmente foi o de média mais alta, entretanto considerando o intervalo de confiança ele empata tecnicamente com a falta de contato e mal gerenciamento de tempo em todas as classes de disciplinas. Algo a se notar é que estimamos com 95% de confiança que o ambiente não produtivo (nas Teóricas de computação/gerais) está acima de 3 em todo o intervalo provável, ou seja, ele tende a direita do valor mediano (o único em que isso acontece). Já os problemas técnicos realmente foram razoavelmente mais baixos que todos os outros, sendo estimado em quase todos os casos a estar abaixo ou igual a 2 (com exceção das Práticas/Laboratórios). O prejuízo médio da comunicação imperfeita com o professor foi relativamente baixo, mas o seu intervalo também intersecta com gerenciamento de tempo e falta de contato, portanto não podemos considerá-la mais baixa na população. Não vimos diferença significativa entre as estimativas por intervalo de confiança entre as classes de disciplinas, como antes hipotetizamos.
+
+Fizemos o mesmo para os pontos positivos:
+
 ```{r, fig.width = 10, fig.height = 6} 
 total_p %>%
         ggplot(aes(x = reorder(aspecto, media), y = media, group = aspecto)) +
@@ -541,6 +602,10 @@ total_p %>%
         scale_fill_npg()
 ```
 
+O horário flexível realmente demonstrou ser o que foi percebido por mais ter ajudado durante o período de ensino remoto emergencial na amostra. Todavia, levando em consideração o intervalo de confiança não podemos assumir que isso é verdade na população, as estimativas estão bem próximas considerando-o. Ainda assim, todas elas estão, pelo menos, acima de 3 ou acima, e o horário flexível está no mínimo em torno de 4 ou acima.
+
+Também analisamos as médias do aprendizado com intervalos de confiança de 95% logo abaixo.
+
 ```{r, fig.align='center'} 
 survey %>%
     select(data_hora, indice_aprendizado, genero) %>%
@@ -551,7 +616,7 @@ survey %>%
         sd = sd(indice_aprendizado), 
         n = n(), 
         se = sd / sqrt(n), 
-        ic = se * qt((1-0.05) / 2 + .5, n - 1)
+        ic = se * qnorm((0.95 + 1)/2)
     ) %>%
     ggplot(aes(x = genero, y = media)) +
     geom_point(aes(color = genero), size = 2.5) +
@@ -568,3 +633,5 @@ survey %>%
     )
 ```
 
+O que observamos são médias próximas de 5.5, meio da escala, sendo mais ampla para as mulheres e menos para os homens. O que concluímos é que no caso masculino, seus aprendizados, em média, não mudaram muito (nem aprenderam bem menos nem mais), podendo existir uma leve tendência a negativo ou positivo. Já nas mulheres, por sua amostra ser menor e ter desvio padrão alto obtivemos um intervalo amplo que não nos diz muito, com ele não podemos concluir que elas aprenderam menos, o mesmo, ou mais. Precisaríamos coletar dados de mais participantes do gênero feminino para tentar estimar melhor. 
+Todavia, não há extremos na nossa estimativa, isto é, não temos evidência que o aprendizado melhorou ou piorou bastante.
