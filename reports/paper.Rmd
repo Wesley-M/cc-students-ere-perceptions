@@ -1,0 +1,371 @@
+---
+title: "Ensino remoto emergencial durante a COVID-19: Percepções de estudantes de Ciência da Computação da UFCG"
+author: "Wesley Santos^[DSC, Universidade Federal de Campina Grande. Email: wesley.santos@ccc.ufcg.edu.br], Arthur Guedes^[DSC, Universidade Federal de Campina Grande. Email: arthur.guedes@ccc.ufcg.edu.br], Thalyta Nascimento^[DSC, Universidade Federal de Campina Grande. Email: thalyta.nascimento@ccc.ufcg.edu.br], Felipe Ferreira^[DSC, Universidade Federal de Campina Grande. Email: felipe.ferreira@ccc.ufcg.edu.br]"
+date: 19 de Setembro de 2020  
+bibliography: references.bib
+csl: associacao-brasileira-de-normas-tecnicas.csl   
+fontsize: 12pt
+link-citations: yes
+linkcolor: blue
+linestretch: 1
+lang: "pt"
+indent: true
+output: 
+    pdf_document:
+        number_sections: true
+        keep_tex: true
+        latex_engine: xelatex
+header-includes:
+   - \usepackage{floatrow}
+   - \floatsetup[figure]{capposition=top}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(kableExtra)
+library(here)
+library(boot)
+library(broom)
+
+theme_set(theme_bw())
+
+survey = read_csv(here("data/modified_survey.csv"))
+survey$disciplinas = as.factor(survey$disciplinas)
+survey$aspecto = as.factor(survey$aspecto)
+
+options(knitr.table.format = "latex")
+```
+
+> **Abstract**: _The outbreak of the new coronavirus will likely go down in history, not only for the implications it has brought to global health, but also for the changes it has brought about in various areas. Among these, education has undergone major transformations, and emergency remote teaching emerged as a response to the pandemic, which made it impossible to continue in-person classes. In this article, we will analyze the perceptions of computer science students, from the Federal University of Campina Grande (UFCG), about learning under the new imposed conditions. We carried out a survey and, through an online form, we collected responses from students from different periods of the course, focusing on questions that would allow us to understand the degree in which some difficulties affect them, as well as some positive points, from the point of view of different classes of course subjects (practical/laboratories, computer theory/general subjects and mathematics/statistics). The results of this study suggest that, on the negative side, the study environment appears as a great difficulty for students during emergency remote teaching. On the positive side, the flexibility, a characteristic of this type of teaching, appears as a great advantage for students in the course and it is possible that there is a slight improvement in the students' perceived learning._
+
+> **Keywords**: Emergency remote teaching, COVID-19, student perceptions, learning, survey.
+
+\newpage 
+
+> **Resumo**: _O surto do novo coronavírus provavelmente ficará marcado na história, não apenas pelas implicações que trouxe para a saúde global, mas também pelas mudanças que provocou em várias áreas. Dentre essas, a educação passou por grandes transformações, e o ensino remoto emergencial surgiu como uma resposta à pandemia, que impossibilitou o prosseguimento de aulas presenciais. Nesse artigo, analisaremos as percepções de estudantes de ciência da computação, da Universidade Federal de Campina Grande (UFCG), acerca da aprendizagem nas novas condições impostas. Realizamos uma pesquisa survey e, através de um formulário online, coletamos respostas de alunos de diversos períodos do curso, focando em perguntas que nos permitissem entender o grau de prejuízo de algumas dificuldades, bem como o grau de satisfação com alguns pontos positivos do ensino remoto, a partir do ponto de vista de diferentes classes de disciplinas do curso (práticas, teóricas de computação/gerais e teóricas de matemática/estatística). Os resultados desse estudo sugerem que, por um lado negativo, o ambiente de estudo aparece como grande dificuldade para os estudantes durante o ensino remoto emergencial. Analisando por um lado positivo, a flexibilização dos horários, característica desse tipo de ensino, surge como grande vantagem para os alunos do curso e é possível que haja uma leve melhora no aprendizado percebido dos estudantes._
+
+> **Palavras-chave**: Ensino remoto emergencial, COVID-19, percepções de estudantes, aprendizagem, survey.
+
+\setstretch{1.5}
+
+# Introdução
+
+O surto do novo coronavírus em 2020 marcou o começo de uma mudança drástica no cotidiano das pessoas e na dinâmica das instituições públicas e privadas em todo o mundo, incluindo as de ensino superior. Em 11 de março de 2020, a Organização Mundial da Saúde (OMS) caracterizou a COVID-19 como uma pandemia [@who], e daí por diante observou-se de perto e cotidianamente o avanço do vírus, responsável por milhares de mortes não apenas no Brasil, mas no mundo inteiro. Nesse contexto, torna-se inevitável falar sobre os impactos nas instituições de ensino superior [@biopolitica; @compassionate], as quais foram obrigadas a migrar para regimes remotos de aprendizado, para os quais a maioria não estava preparada.
+
+E como muitas outras, a Universidade Federal de Campina Grande também adotou esse regime como alternativa para a continuidade dos seus cursos. Com isso, há pouco mais de um ano, os discentes da UFCG viram suas rotinas mudarem profundamente, precisando adaptá-las ao novo sistema de ensino. Nesse ponto, criam-se muitas expectativas para o desenrolar dessa situação, vários questionamentos surgem frente a um desafio nunca antes vivenciado. Dúvidas acerca do desempenho dos estudantes, bem como pontos positivos e negativos do ensino remoto, que antes não era sequer cogitado, passam agora a serem considerados [@positives]. Dessa forma, destaca-se a importância do estudo realizado não apenas por levantar as dificuldades dos estudantes em um novo sistema de ensino, mas também por considerar os impactos positivos do mesmo, sendo até mesmo possível, em uma próxima discussão, considerar a adaptação de alguns deles para o ensino presencial.
+
+Nesse artigo, vamos focar em compreender e analisar as percepções dos estudantes de Ciência da Computação, especificamente do departamento da UFCG, a respeito da aprendizagem durante o ensino remoto emergencial. Através de uma survey, estudamos os graus de prejuízo trazidos por algumas dificuldades comuns na literatura, como também procuramos entender o grau de satisfação com alguns pontos positivos, consequências do ensino remoto, também levantados em artigos recentes. Levamos em consideração, ainda, diferentes classes de disciplinas no curso (práticas/laboratórios, teóricas de computação/gerais e teóricas de matemática/estatística), uma vez que, dificuldades de disciplinas teóricas podem não ser as mesmas das disciplinas práticas. 
+
+Nossos resultados sugerem que, apesar dos estudantes de computação já possuírem familiaridade com ferramentas online, certos aspectos do ensino remoto, como os ambientes não produtivos de suas casas, ainda representam um empecilho que os prejudica. Entretanto, observamos considerável grau de satisfação acerca dos pontos positivos, aliado aos seus aprendizados percebidos, os quais podem ter melhorado levemente em relação ao ensino presencial. De forma geral, o restante deste artigo é composto pelas seguintes seções complementares: Trabalhos relacionados, materiais e métodos, resultados, discussão, conclusão e declarações (conflitos de interesse e dados da pesquisa).
+
+# Trabalhos relacionados
+
+A pandemia causada pela COVID-19 trouxe consigo vários desafios às instituições de educação superior, todavia ela não foi a primeira crise que ocasionou migração para um ensino remoto emergencial. Desastres naturais, como terremotos [@gomez2013lessons] e furacões [@dicarlo2007survival], protestos estudantis [@czerniewicz2019online], guerras e conflitos [@schweber2008determined] também resultaram na adoção temporária desse regime. Nem tão pouco essa pandemia foi a única, outro exemplo que ocasionou disrupções regionais foi a provocada pela H1N1 [@van2010university], com isso dito, o novo coronavírus afetou a vida de praticamente  todos em uma escala nunca antes vista e mudou a dinâmica de países inteiros por mais de um ano e dá sinais que não irá parar tão cedo [@timeline].
+
+Situações como as descritas, apesar de trágicas, foram acompanhadas de pesquisas sobre a resposta da educação superior e sua transição para o regime remoto. Isso inclui a rápida adaptação para o ensino online [@mackey2012blended], a importância de comunicação clara e transparente entre universidade e estudantes [@gomez2013lessons], discussões de equidade e ética [@swartz2018care],  análise de sentimento automatizado (e.g. tweets) [@duong2020ivory] e análise de repercussão em classes de alunos [@compassionate; @petillion2020student].
+
+Outro tema recorrente é o de saúde mental e física de estudantes e instrutores [@cao2020psychological], como também o impacto do regime remoto na experiência de aprendizado. O que fez surgir pesquisas sobre as percepções dos discentes em tempo de ensino remoto [@toti2021], as quais analisaram aspectos como dificuldades e pontos positivos. A literatura nos mostra que estudantes não confiam em suas habilidades de focar nos trabalhos escolares em casa, onde outras distrações estão presentes, dificultando a realização de trabalhos em grupo [@zimmerman2016online]. Além disso, também são listados como problemas fatores como a falta de infraestrutura [@adnan2020online, @dhawan2020online], motivação e ritmo na ausência de cronograma estruturado [@fedynich2013teaching].
+
+Também existem estudos que focam em alunos de Ciência da Computação, Maltby e Whittle [@maltby2000learning] mostraram opiniões conflituosas de estudantes, enquanto 58% dos entrevistados indicaram uma preferência por aulas face-a-face em relação às online, acreditando terem mais valor educacional, outros viram com bons olhos o fato das aulas estarem disponíveis online, podendo ser acessadas facilmente e de forma flexível, e ao mesmo tempo teve aqueles frustrados por problemas com conectividade e dificuldade em perguntar questões aos instrutores.
+
+Em um estudo mais recente por Toti e Alipour [@toti2021], foram analisadas as percepções de alunos de Ciência da Computação na transição de ensino presencial para o remoto na Universidade de Houston (Texas) e, dentre outras coisas, apontou-se dificuldades como a de perguntar questões em sala e interagir com os instrutores, e experiência favoráveis aos alunos como a flexibilidade de poder acessar e estudar materiais disponibilizados assincronamente e em seu ritmo. Também foi citado que alguns professores tornaram seus planos de aula mais claros e usaram de comunicação menos ambígua, o que também foi avaliado de forma positiva.
+
+Considerando todo o nosso conhecimento, a experiência de estudantes de Ciência da Computação no Brasil, no contexto de avaliação de dificuldades e pontos positivos pelos alunos, ainda não foi investigada e beneficiaria a comunidade acadêmica. Neste trabalho, nosso objetivo é justamente esse, compreender melhor em que grau as principais dificuldades reportadas na literatura os prejudicam e quais características mais os satisfazem no contexto remoto. Para isso, analisamos um grupo de estudantes de um dos cursos de ciência da computação mais bem avaliados no Brasil, ofertado pela Universidade Federal de Campina Grande - UFCG.
+
+
+# Materiais e Métodos
+
+Com o objetivo de entender melhor a percepção dos estudantes de Ciência da Computação da UFCG acerca de dificuldades, pontos positivos e aprendizado percebido durante o ensino remoto emergencial, realizamos um questionário anônimo composto por 15 perguntas objetivas, abertas e com escala, o qual foi distribuído na lista de emails do curso e as respostas coletadas online. O convite para participar da pesquisa foi enviado em 10 de agosto de 2021 e as respostas foram coletadas até 16 de agosto.
+
+A primeira seção do questionário teve o objetivo de coletar informações pessoais sobre os alunos, incluindo idade, gênero, o período de ingresso na universidade e qual classe(s) de disciplinas cursou ou está cursando no ensino remoto emergencial. Já a segunda está relacionada às dificuldades que os alunos enfrentaram até o momento no ensino remoto ao cursarem disciplinas teóricas de matemática e/ou estatística (TM/E), de computação e/ou optativas gerais (TC/OG) e em práticas e/ou laboratórios (P/L). Com o objetivo de identificar qual problema mais prejudica os estudantes e quais disciplinas são mais afetadas. Dentre as dificuldades foram enumerados problemas técnicos (PT), problemas de comunicação com o professor (CP), problema de gerenciamento de tempo (GT), falta de contato pessoal com o professor (FC) e distrações por não estar em um ambiente não produtivo (ANP). Para medir o prejuízo associado às dificuldades foi utilizada escala Likert de 5 pontos, que varia de “Não fui prejudicado” a “Fui muito prejudicado”.
+
+Na terceira seção de perguntas são coletadas informações sobre possíveis pontos positivos ocasionados pelo ensino remoto e o quanto ajudaram os alunos. Dentre esses pontos, estão os horários flexíveis de estudo (HF), já que muitas disciplinas disponibilizam aulas gravadas, além de não cobrarem faltas. Estrutura mais clara das disciplinas (EC), e aprendizado no ritmo próprio do aluno (RP) foram outros pontos questionados nesta seção. A escala Likert de 5 pontos também foi utilizada nessa seção variando de “Não me ajudaram” a “Me ajudaram bastante”.
+
+Na quarta e última seção, o aluno é questionado sobre o quanto seu aprendizado foi afetado no ensino remoto, usando mais uma vez a escala Likert que varia de “Eu aprendi bem menos” a “Eu aprendi bem mais”. E de forma opcional é interrogado sobre quais dificuldades e quais pontos positivos que não foram citados na seções anteriores tiveram que enfrentar.
+
+
+# Resultados
+
+A pesquisa contou com 67 respostas e as características dos participantes podem ser sumarizadas da seguinte forma:
+
+-   Idade: Média de 21.87 anos (desvio padrão: 2.77), com 94% dos participantes entre 18-25 anos e o restante (6%) de 28-34 anos.
+-   Gênero: 80.6% (n = 54) se declararam do masculino e 19.4% (n = 13) feminino.
+-   Período de ingresso na faculdade: As maiores proporções foram de 23.9% no primeiro semestre de 2018 (2018.1), 17.9% no segundo semestre de 2017 (2017.2) e 10.4% no segundo semestre de 2020 (2020.2). O restante obteve menos de 9% cada.
+-   Classe de disciplinas cursadas ou cursando: 97.01% indicaram teóricas de computação e/ou optativas gerais (TC/OG), 80.6% teóricas de matemática e/ou estatística (TM/E) e 70.15% práticas e/ou laboratórios (P/L).
+
+A seguir, apresentamos estatísticas e distribuições das questões que se utilizaram de escala Likert para quantificar a percepção dos estudantes. Com respeito às dificuldades e pontos positivos nas 3 classes de disciplinas, consideramos apenas as respostas daqueles que cursaram ou estão cursando alguma matéria incluída na respectiva classe.
+
+A primeira parte da pesquisa avaliou o prejuízo percebido, o qual os estudantes associaram a 5 dificuldades encontradas na literatura, por classe de disciplinas (TC/OG, TM/E e P/L). Já a escala variou de "não fui prejudicado" à "fui muito prejudicado". A distribuição das respostas pode ser encontrada na tabela 1, enquanto as médias de prejuízo e seus intervalos de confiança estão na figura 1. Para a técnica de estimativa desses intervalos, usamos bootstrapping com 4000 reamostragens e correção de viés [@efron1992bootstrap].
+
+Enquanto a segunda parte da pesquisa tratou da ajuda percebida que os estudantes associam a 3 pontos positivos, também pelas mesmas classes de disciplinas. A escala variou de "não me ajudaram" à "fui ajudado bastante". As estatísticas e distribuições igualmente se encontram na tabela 1 e figura 2.
+
+A terceira parte tanto coletou dificuldades e pontos positivos que os estudantes observaram, que não foram citadas na pesquisa, como também questionou o grau de aprendizado percebido por eles em meio ao ensino remoto emergencial de 1-10. A escala variou de "aprendi bem menos" à "aprendi bem mais". A média geral foi de 5.6 (n = 67, IC 95% = [5.01, 6.16]), enquanto que analisando só para os de gênero masculino foi de 5.57 (n = 54, desvio padrão = 2.28, IC 95% = [4.98, 6.19]) e feminino foi de 5.69 (n = 13, desvio padrão = 2.95, IC 95% = [4.23, 7.23]).
+
+```{r data_table, echo=FALSE}
+aux <- survey
+
+levels(aux$aspecto) = c("Ambiente não produtivo", 
+                           "Comunicação prejudicada", 
+                           "Estrutura clara",
+                           "Falta de contato",
+                           "Horário Flexível",
+                           "Prob. de Gerenciamento de tempo",
+                           "Problemas técnicos",
+                           "Ritmo próprio")
+
+disc_summary <- function(df, disc, disc_label) {
+    df %>%
+        filter(disciplinas == disc) %>%
+        group_by(aspecto) %>%
+        rename("Aspecto" = aspecto) %>%
+        summarise("1-MP" = paste(round(mean(avaliacao == 1), 3) * 100, "%"), 
+                  "2-P" = paste(round(mean(avaliacao == 2), 3) * 100, "%"),
+                  "3-N" = paste(round(mean(avaliacao == 3), 3) * 100, "%"),
+                  "4-R" = paste(round(mean(avaliacao == 4), 3) * 100, "%"),
+                  "5-M" = paste(round(mean(avaliacao == 5), 3) * 100, "%"),
+                  "Média" = round(mean(avaliacao), 2),
+                  tipo) %>%
+        mutate("Disciplina" = rep(disc_label, n())) %>%
+        select("Aspecto", tipo, "Disciplina", "1-MP", "2-P", "3-N", "4-R", "5-M", "Média")
+}
+
+discs_summary <- rbind(
+    disc_summary(aux %>% filter(comp_cursadas == 1), "comp", "TC/OG"),
+    disc_summary(aux %>% filter(mat_cursadas == 1), "mat", "TM/E"),
+    disc_summary(aux %>% filter(prat_cursadas == 1), "prat", "P/L")
+)
+
+aux$aspecto = as.character(aux$aspecto)
+```
+
+\newpage
+
+```{r likertdifficulties}
+discs_summary %>%
+    unique() %>%
+    arrange(tipo, `Aspecto`) %>%
+    select(-tipo) %>%
+    kbl(format = "latex", longtable = T, caption = "Graus de dificuldade e satisfação com pontos positivos") %>%
+    kable_styling(full_width = FALSE, font_size = 10) %>%
+    collapse_rows() %>%
+    pack_rows(index = c("Experiências negativas" = 15, "Experiências positivas" = 9), latex_gap_space = "1em") %>%
+    footnote(general = c("MP Muito Pouco, P Pouco, N Neutro, R Razoável, M Muito", "Nos pontos positivos diz respeito a satisfação e nas dificuldades ao grau de prejuízo"), threeparttable = T)
+```
+
+```{r, cache=TRUE}
+theta <- function(d, i) {
+    d[i,] %>%
+        summarise(do_grupo = mean(avaliacao)) %>%
+        pull(do_grupo)
+}
+ 
+ci <- function(d, theta, rep, conf, ds, asp, t) {
+     boot(data = d,
+          statistic = theta,
+          R = rep) %>%
+     tidy(conf.level = conf,
+          conf.method = "bca",
+          conf.int = TRUE) %>%
+     mutate(disciplinas = ds, aspecto = asp, tipo = t)
+}
+
+ estimativas <- data.frame()
+
+ for (disc in levels(survey$disciplinas)) {
+     for (aspect in levels(survey$aspecto)) {
+         curs <- paste(disc, "_cursadas", sep = "")
+         tipo <- "Ponto Positivo"
+         if (!aspect %in% c("estrut_clara", "flex_horario", "ritmo_proprio")) {
+             tipo <- "Dificuldade"
+         }
+         estimativas <- rbind(
+             estimativas, ci(survey %>% filter(!!sym(curs) == 1, 
+                             disciplinas == disc, aspecto == aspect),
+                             theta, 4000, .95, ds = disc, asp = aspect, t = tipo)
+         )
+     }
+ }
+```
+
+```{r dificuldades, fig.height = 3.5, fig.cap="\\label{fig:fig1} Graus de prejuízo das dificuldades"} 
+estimativas$disciplinas <- as.factor(estimativas$disciplinas)
+
+ levels(estimativas$disciplinas) <- c(
+     "TM/OG",
+     "TM/E",
+     "P/L"
+ )
+ 
+ estimativas %>%
+     filter(!aspecto %in% c("estrut_clara", "flex_horario", "ritmo_proprio")) %>%
+         ggplot(aes(x = reorder(aspecto, statistic), y = statistic)) +
+         facet_grid(tipo~disciplinas) +
+         geom_errorbar(aes(ymin = conf.low, ymax = conf.high), 
+                           width = 0.15, size = 0.7, color = "gray3") +
+         geom_point(size = 1.2, color = "black") +
+         geom_text(
+             aes(
+                 y = conf.high,
+                 label = str_glue("[{round(conf.low, 2)}, {round(conf.high, 2)}]")
+             ),
+             size = 2.8,
+             nudge_x = -.2,
+             nudge_y = .3,
+             show.legend = F
+         ) +
+         geom_hline(aes(yintercept = 3), lty = "dashed", 
+                    color = "black", alpha = 0.25, size = 0.6) +
+         scale_y_discrete(limits = factor(c(1, 2, 3, 4, 5))) +
+         scale_x_discrete(labels = rev(c("ANP", "FC", "GT", "CP", "PT"))) +
+         theme(legend.position = "none") +
+         coord_flip() +
+         labs(
+             y = "Média de avaliação",
+             caption = "Valores menores = prejudicaram pouco, Valores maiores = prejudicaram muito",
+             x = ""
+         )
+```
+
+```{r pontos_positivos, fig.height = 2.5, fig.cap="\\label{fig:fig2} Graus de satisfação com os pontos positivos"} 
+ estimativas %>%
+     filter(aspecto %in% c("estrut_clara", "flex_horario", "ritmo_proprio")) %>%
+         ggplot(aes(x = reorder(aspecto, statistic), y = statistic)) +
+         facet_grid(tipo~disciplinas) +
+         geom_errorbar(aes(ymin = conf.low, ymax = conf.high), 
+                           width = 0.15, size = 0.7, color = "gray3") +
+         geom_point(size = 1.2, color = "black") +
+         geom_text(
+             aes(
+                 y = conf.high,
+                 label = str_glue("[{round(conf.low, 2)}, {round(conf.high, 2)}]")
+             ),
+             size = 2.8,
+             nudge_x = -.2,
+             nudge_y = .3,
+             show.legend = F
+         ) +
+         geom_hline(aes(yintercept = 3), lty = "dashed", 
+                    color = "black", alpha = 0.25, size = 0.6) +
+         scale_y_discrete(limits = factor(c(1, 2, 3, 4, 5))) +
+         scale_x_discrete(labels = rev(c("HF", "RP", "EC"))) +
+         theme(legend.position = "none") +
+         coord_flip() +
+         labs(
+             y = "Média de avaliação",
+             caption = "Valores menores = Ajudaram pouco, Valores maiores = Ajudaram muito",
+             x = ""
+         )
+```
+
+```{r} 
+theta <- function(d, i) {
+    d[i,] %>%
+        summarise(do_grupo = mean(indice_aprendizado)) %>%
+        pull(do_grupo)
+}
+
+data <- survey %>%
+            select(data_hora, genero, indice_aprendizado) %>%
+            unique
+
+# est <- ci(data, theta, 4000, .95, ds = "", asp = "", t = "")
+
+```
+
+## Análise das respostas às questões abertas
+
+O formulário conteve duas questões abertas opcionais (1) quais dificuldades (não citadas anteriormente) os impactaram negativamente e (2) quais pontos (não citados anteriormente) os impactaram positivamente. Identificamos e categorizamos cada resposta dos alunos. A tabela 2 mostra as principais categorias das respostas e as suas frequências. No restante da seção sumarizamos as experiências positivas e as dificuldades causadas pelo ensino remoto emergencial relatadas.
+
+\setstretch{0}
+
++-----------------------------+-------------+--------------+
+| Categoria                   | Frequência  | Tipo         |
++=============================+=============+==============+
+| Carga maior de conteúdos    |        7    | Dificuldade  |
++-----------------------------+-------------+--------------+
+| Flexibilidade de tempo      |        2    | Pt. positivo |
++-----------------------------+-------------+--------------+
+| Locomoção                   |        2    | Pt. positivo |
++-----------------------------+-------------+--------------+
+| Novas ferramentas           |        2    | Pt. positivo |
++-----------------------------+-------------+--------------+
+| Compreensão dos professores |        1    | Pt. positivo |
++-----------------------------+-------------+--------------+
+| Comunicação facilitada      |        1    | Pt. positivo |
++-----------------------------+-------------+--------------+
+| Conforto de casa            |        1    | Pt. positivo |
++-----------------------------+-------------+--------------+
+| Emails não padronizados     |        1    | Dificuldade  |
++-----------------------------+-------------+--------------+
+| Falta de convívio           |        1    | Dificuldade  |
++-----------------------------+-------------+--------------+
+| Foco                        |        1    | Dificuldade  |
++-----------------------------+-------------+--------------+
+| Métodologia ineficiente     |        1    | Dificuldade  |
++-----------------------------+-------------+--------------+
+
+: Frequência das categorias nas questões abertas
+
+
+\setstretch{1.5}
+
+### Experiências negativas
+
+Tivemos 11 respostas (16.4% dos participantes), onde a maior carga/cobrança dos professores foi a dificuldade mais citada pelos estudantes, por impactá-los negativamente.
+
+> *"Acredito que alguns professores exageram na quantidade de atividades pedidas, provavelmente por acreditar que por ser remoto, o aluno tem mais tempo."*
+
+> *"A carga de atividades parece ser maior, principalmente em períodos mais curtos. São muitas entregas e prazos, a sensação é de que o período é uma 'semana de provas' que dura 4 meses."*
+
+Em menor número, ainda foram citados problemas de comunicação (unidades acadêmicas diferentes usando outros e-mails), dificuldade ao focar no conteúdo, falta de convívio com os outros alunos e metodologia de alguns professores do departamento de matemática deixando a desejar.
+
+### Experiências positivas
+
+Tivemos 10 respostas (14.9% dos participantes), a maioria dos participantes se expressou em menos palavras e houve menos interseção entre as respostas. Os assuntos mais frequentes foram a utilização de novas ferramentas (discord, Google Meet e chat/votação anônimas), menos gastos com locomoção (financeiro e de tempo). Também foi reforçado o benefício da flexibilidade do tempo.
+
+> *"Uso de ferramentas para melhorar a interação dos alunos com o professor, como por exemplo ferramentas de chat/votação anônima"*
+
+> *"Menores gastos financeiros e de tempo no deslocamento entre casa e universidade."*
+
+> *"Devido a flexibilização de horários eu pude dormir melhor"*
+
+Também foi citada a compreensão das dificuldades envolvidas no dia-a-dia dos alunos pelos professores, havendo flexibilização da entrega de atividades; o conforto da própria casa e a comunicação facilitada com colegas.
+
+> "Acho que o fato de alguns professores compreenderem os atrasos é um ponto positivo. Tem sido um período de ansiedade e frustração, então quando perco um prazo e o/a professor(a) não entende que num ambiente doméstico existem muitas variáveis e nem todo mundo tem um escritório isolado de ruído, é muito triste. Por sorte são poucos os professores que escolhem ignorar isso."
+
+# Discussão
+
+Nossos resultados sugerem que é possível existir uma leve melhora no aprendizado percebido pelos estudantes de computação. Já que o questionamento acerca do aprendizado revelou uma média de 5.6 (n = 67, IC 95% = [5.01, 6.16]), entretanto não é possível descartar um valor próximo de 5 como aceitável, ou seja, um aprendizado comparável ao do regime presencial.  De forma similar, como mostrado na tabela 1, em 4 das 5 dificuldades as respostas mais populares estiveram entre “não fui prejudicado” (1) e “neutro” (3), com média abaixo ou iguais a 3, o que revela uma distribuição enviesada para valores menores, acentuadamente nos “problemas técnicos”, que se mostraram menos relevantes que os outros na maioria dos casos. O “ambiente não produtivo” foi a exceção, sendo as respostas mais populares o “razoavelmente prejudicado” (4) e “muito prejudicado” (5), o que revela que esse problema possivelmente aflige uma grande parte dos estudantes. 
+
+Aliada a essa situação, os pontos positivos apresentados também demonstraram ajudar os estudantes durante o ensino remoto emergencial, todos eles com médias acima de 3, sendo a resposta mais popular o “fui ajudado bastante”, demonstrando uma distribuição enviesada para valores maiores. O “horário flexível” é aquele que aparentemente teve maior efeito positivo na amostra, todavia não mostra diferença significativa em relação ao “mal gerenciamento de tempo” e “falta de contato face-a-face”. Esses resultados foram validados com intervalos de confiança na figura 1.
+
+Outro achado, que se alinhou à literatura, foi a falta de diferença significativa entre o aprendizado entre estudantes do gênero masculino e feminino. Como sabemos, estudantes do gênero feminino ainda representam uma porção pequena em muitos departamentos de ciência da computação. No nosso caso, vimos um intervalo de confiança nos estudantes do gênero masculino bem próximos do que tínhamos calculados para todos (média amostral = 5.57, n = 54, desvio padrão = 2.28, IC 95% = [4.98, 6.19]), enquanto que no caso feminino é menos claro se houve piora, melhora ou o mesmo do ensino presencial (média amostral = 5.69, n = 13, desvio padrão = 2.95, IC 95% = [4.23, 7.23]). Entretanto, os intervalos têm interseção, portanto, não encontramos diferenças significativas.
+
+Também houveram alguns resultados inesperados, derivados da análise de correlação entre idades e período com o aprendizado percebido e das dificuldades e pontos positivos por classe de disciplinas. Primeiro, esperávamos que a idade e o período de ingresso do estudante na faculdade influenciassem moderadamente no aprendizado percebido, entretanto as correlações de Spearman resultantes foram de intensidades baixas, -0.09 e 0.12 respectivamente . 
+
+Já no segundo caso, esperávamos que houvesse diferença significativa entre as 3 classes de disciplinas que julgamos serem mais diferentes entre si (teóricas de computação e/ou optativas gerais, teóricas de matemática e/ou estatística e prática e/ou laboratório). Entretanto como visto na figura 1, apesar de haverem diferenças na amostra, os intervalos de confiança não revelam diferenças estatisticamente satisfatórias na população. Acreditamos que isso se deva a um conjunto de fatores, tanto por a maioria dos respondentes estarem na faculdade a alguns anos (mais experiência em relação aos mais novos) e o formato das aulas e das cobranças terem se aproximado (inexistência da cobrança de faltas, mesmas ferramentas de vídeo-chamada, avaliações assíncronas e/ou online, entre outros).
+
+# Conclusão
+
+Neste estudo, através de uma pesquisa survey, buscamos compreender melhor a experiência dos estudantes de Ciência da Computação (UFCG) durante o ensino remoto emergencial implantado na universidade, ainda em 2020. Levantamos, junto às dificuldades apresentadas por esses, pontos positivos e negativos que surgem nesse sistema de ensino. Importante lembrar que, para uma melhor análise dos dados, as perguntas foram direcionadas para três diferentes classes de disciplinas, as teóricas de matemática e de computação e as disciplinas práticas e laboratoriais. Além disso, também foi questionado aos estudantes, de forma opcional, quais dificuldades e quais pontos positivos impactaram o desenvolvimento no ensino remoto.
+
+De maneira geral, nossos resultados mostram ser possível que haja uma leve melhora no aprendizado percebido pelos estudantes durante o novo regime. E o ambiente de estudo não produtivo, agora diferente da sala de aula, aparece como possível grande problema para a maioria dos alunos e, consequentemente, um dos pontos negativos. Por outro lado, o horário flexível permitido pelo ensino remoto surge como possível grande ponto positivo observado pelos discentes.
+
+Os participantes, ao final da pesquisa, responderam duas questões abertas com foco nos pontos positivos e nas dificuldades que não tivessem sido listadas anteriormente. Apesar de poucas, é possível notar um padrão nas respostas: Quando falamos de pontos negativos, a maior parte dos estudantes relataram que a carga horária é uma dificuldade. Em relação aos pontos positivos, obtivemos uma grande variedade de respostas, que vão desde a flexibilidade nos horários até a economia no transporte.
+
+Em relação às limitações desta pesquisa, destacamos o tamanho da amostra, ainda pouco representativa em termos numéricos. Além disso, em um possível trabalho futuro, poderíamos abranger mais classes de disciplinas do curso e também analisar mais pontos positivos e negativos, de forma que nos permitisse ter uma visão mais completa acerca das percepções dos estudantes, como também aumentar o tamanho da amostra e tentar diminuir os intervalos de confiança.
+
+
+# Declarações
+
+> **Conflitos de interesse:** Sem conflito de interesse.
+
+> **Disponibilidade dos dados:** [link para os dados da survey](https://github.com/Wesley-M/cc-students-ere-perceptions/blob/main/data/survey.csv)
+
+> **Disponibilidade do código:** [link para o código de análise](https://github.com/Wesley-M/cc-students-ere-perceptions/)
+
+\newpage
+
+# Referências

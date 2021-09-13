@@ -60,8 +60,8 @@ img {
 
 Nesse relatório, onde faremos a análise das percepções dos estudantes de CC (UFCG) acerca do ensino remoto de emergência, se encontram as visualizações e interpretações das respostas de cada questão. Como também análises de correlação e de estatísticas da nossa amostra. Por fim, fazendo inferências acerca do aprendizado e das dificuldades entre os alunos. Os dados são provenientes de um questionário aplicado entre as datas de 10/08/2021 até 16/08/2021, o qual contou com a participação de 67 estudantes do curso.
 
-Link para as questões: [Google Drive](https://drive.google.com/file/d/1VVcSt1S7owWi4zg0ZvIqrPRelR0avuc-/view?usp=sharing) <br/>
-Link para os dados (CSV): [Github](https://github.com/Wesley-M/cc-students-ere-perceptions/blob/main/data/survey.csv)
+Link para as questões: [Google Drive](https://drive.google.com/file/d/1VVcSt1S7owWi4zg0ZvIqrPRelR0avuc-/view?usp=sharing){target="_blank"} <br/>
+Link para os dados (CSV): [Github](https://github.com/Wesley-M/cc-students-ere-perceptions/blob/main/data/survey.csv){target="_blank"}
 
 Primeiramente, iremos apresentar as nossas hipóteses e logo após a categorização demográfica da nossa amostra, dando uma melhor ideia de quem respondeu nossa pesquisa.
 
@@ -240,7 +240,7 @@ rating_count_info <- function(df, aspect = "prob_tec", disc = "comp") {
         summarise(count = n(),
                   freq = paste(round(n() / tot * 100, 1), "%", sep = ""),
                   disciplinas, .groups = "drop") %>%
-    unique
+        unique
 }
 
 aspect_distribution <- function(df, aspect = "prob_tec", dir = 1, pal = "Reds", ...) {
@@ -468,12 +468,10 @@ Nós também investigamos se houve correlação entre variáveis como idade e pe
 survey %>%
     select(data_hora, idade, periodo, indice_aprendizado, genero) %>%
     distinct %>%
-    group_by(genero) %>%
     summarise("Período" = cor(as.numeric(periodo), indice_aprendizado, method = "spearman"),
               "Idade" = cor(idade, indice_aprendizado, method = "spearman")) %>%
     kable() %>%
-        kable_material(full_width = FALSE, position = "center", font_size = 14) %>%
-        add_header_above(header = c("Correlações de Spearman da idade e período com o aprendizado - por gênero" = 3))
+        kable_material(full_width = FALSE, position = "center", font_size = 14)
 ```
 
 Também analisamos as correlações entre as dificuldades relatadas e o índice de aprendizado percebido, por classe de disciplinas e gênero.
@@ -607,6 +605,18 @@ O horário flexível realmente demonstrou ser o que foi percebido por mais ter a
 Também analisamos as médias do aprendizado com intervalos de confiança de 95% logo abaixo.
 
 ```{r, fig.align='center'} 
+survey %>%
+    select(data_hora, indice_aprendizado, genero) %>%
+    distinct %>%
+    group_by(genero) %>%
+    summarise(
+        media = mean(indice_aprendizado), 
+        sd = sd(indice_aprendizado), 
+        n = n(), 
+        se = sd / sqrt(n), 
+        ic = se * qnorm((0.95 + 1)/2)
+    )
+
 survey %>%
     select(data_hora, indice_aprendizado, genero) %>%
     distinct %>%

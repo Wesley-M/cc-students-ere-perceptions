@@ -105,7 +105,7 @@ survey <- survey %>%
         mutate(comp_cursadas = ifelse(grepl("Teóricas de computação/gerais", cursadas, fixed=TRUE), 1, 0),
                mat_cursadas = ifelse(grepl("Teóricas da base matemática/estatística do curso", cursadas, fixed=TRUE), 1, 0),
                prat_cursadas = ifelse(grepl( "Práticas/Laboratórios", cursadas, fixed=TRUE), 1, 0)) %>%
-        select(-c("cursadas", "positivos_n_citados", "dificuldades_n_citadas")) %>%
+        select(-c("cursadas")) %>%
     slice(n = 25:(initial_length*24))
 
 View(survey)
